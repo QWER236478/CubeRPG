@@ -1,55 +1,73 @@
+using NUnit.Framework;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public GameObject cube1;
-    public GameObject cube2;
+    public static GameManager Instance;
 
-    Coroutine curCoroutine;
+    public int Score;
 
+    [Header("플레이어")]
+    [SerializeField]
+    private GameObject PlayerPrefabs;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    [Header("적")]
+    [SerializeField]
+    private int MonsterSpawnCount = 10;
+    [SerializeField]
+    private GameObject EnemyPrefabs;
+    [SerializeField]
+    private float spawnAreaWidth = 40;
+    [SerializeField]
+    private float spawnAreaHeight = 40;
+    [SerializeField]
+    private float spawnAreaMargin = 2;
+
+    private float spawnAreaHalfWidth = 40;
+    private float spawnAreaHalfHeight = 2;
+
+    public float SpawnAreaHalfWidth => spawnAreaHalfWidth;
+    public float SpawnAreaHalfHeight => spawnAreaHalfHeight;
+
+    private GameObject Player;
+    private List<GameObject> Enemies = new List<GameObject>();
+
+    private void Awake()
     {
-        StartCoroutine(nameof(CubeFalse), 2);
-
-        StartCoroutine(CubeFalse(2, 3));
+        Instance = this;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-
+        SpawnPlayer();
+        SpawnEnemy();
     }
 
-    IEnumerator CubeFalse(float delay1, float delay2)
+    void SpawnPlayer()
     {
-        yield return new WaitForSeconds(delay1);
-
-        cube1.SetActive(false);
-
-        yield return new WaitForSeconds(delay2);
-
-        cube2.SetActive(false);
+        Player = Instantiate(PlayerPrefabs);
     }
 
-    IEnumerator CubeTure()
+    void SpawnEnemy()
     {
-        yield return new WaitForSeconds(2);
+        spawnAreaHalfWidth = (spawnAreaWidth / 2) - spawnAreaMargin;
+        spawnAreaHalfHeight = (spawnAreaHeight / 2) - spawnAreaMargin;
 
-        cube1.SetActive(true);
+        for (int i = 0; i < MonsterSpawnCount; i++)
+        {
+            float spawnPosX = Random.Range(-spawnAreaHalfWidth, spawnAreaHalfWidth);
+            float spawnPosZ = Random.Range(-spawnAreaHalfHeight, spawnAreaHalfHeight);
 
-        yield return new WaitForSeconds(3);
+            float spawnRotY = Random.Range(0, 360);
 
-        cube2.SetActive(true);
-    }
+            Vector3 spawnPos = new Vector3(spawnPosX, EnemyPrefabs.transform.position.y, spawnPosZ);
+            Quaternion spawnRot = Quaternion.Euler(0, spawnRotY, 0);
 
-    public void Stop()
-    {
-        StopCoroutine(curCoroutine);
-
-        StopAllCoroutines();
+            GameObject enemy = Instantiate(EnemyPrefabs, spawnPos, spawnRot);
+            Enemies.Add(enemy);
+        }
     }
 }
